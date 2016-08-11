@@ -6,7 +6,7 @@
 
 ### The Role of Directives
 
-** What are Directives **  The official AngularJS definition: Markers on a DOM element that tell Angular's HTML compiler ($compile) to attache a specific behavior to that DOM element...
+**What are Directives**  The official AngularJS definition: Markers on a DOM element that tell Angular's HTML compiler ($compile) to attache a specific behavior to that DOM element...
 
 There are 4 ways to attach directives to DOM elements.  For example, as an attribute: `<div my-directive></div>`.
 
