@@ -20,37 +20,37 @@ What can directives do?
 
 Angular comes with a lot of built-in directives:
 *   FORMS
-    1.  mg-maxlength
-    2.  ng-minlength
-    3.  ng-pattern
-    4.  ng-required
-    5.  ng-submit
+    *  mg-maxlength
+    *  ng-minlength
+    *  ng-pattern
+    *  ng-required
+    *  ng-submit
 *   BEHAVIOR
-    1.  ng-blur
-    2.  ng-change
-    3.  ng-checked
-    4.  ng-click
-    5.  ng-key*
-    6.  ng-mouse*
+    *  ng-blur
+    *  ng-change
+    *  ng-checked
+    *  ng-click
+    *  ng-key*
+    *  ng-mouse*
 *   DATA BINDING
-    1.  ng-bind
-    2.  ng-href
-    3.  ng-init
-    4.  ng-model
-    5.  ng-src
-    6.  ng-style
+    *  ng-bind
+    *  ng-href
+    *  ng-init
+    *  ng-model
+    *  ng-src
+    *  ng-style
 *   APPLICATION
-    1.  ng-app
-    2.  ng-controller
+    *  ng-app
+    *  ng-controller
 *   DOM
-    1.  ng-disabled
-    2.  ng-cloak
-    3.  ng-hide
-    4.  ng-if
-    5.  ng-repeat
-    6.  ng-show
-    7.  ng-switch
-    8.  ng-view
+    *  ng-disabled
+    *  ng-cloak
+    *  ng-hide
+    *  ng-if
+    *  ng-repeat
+    *  ng-show
+    *  ng-switch
+    *  ng-view
     
 And there are lots of 3rd Party Directives:
 1.  UI Bootstrap
@@ -87,6 +87,7 @@ Wahlin differentiates three general categories of directives.  It's easier to co
 **Directive Types**
 
 Angular gives us 4 different ways to define a directive in a page:
+
 1.  **Attribute** directive (default):
     `<span my-dir="exp"></span>`
 2.  **Element** directive (default): `<my-dir></my-dir>`
@@ -107,6 +108,7 @@ In a DDO we can define a template and also **scope** (inherited or **isolate** s
 -- https://docs.angularjs.org/api/ng/service/$compile
 
 The $compile process:
+
 1.  We supply a Template
 2.  Template is fed into $compile provider via the DDO
 3.  Behind the scene, $compile returns a Template Function
@@ -114,6 +116,7 @@ The $compile process:
 5.  And it gives us back HTML
 
 $compile and the DDO:
+
 *   $compile provider relies on a DDO
 *   Features of the DDO:
     1.  Defines the template for the directive
@@ -124,6 +127,7 @@ $compile and the DDO:
     6.  More...
 
 Key DDO Properties we'll talk about throughout the course:
+
 1.  **restrict** - defines the directive type (Attribute, Element, etc.)
 2.  **template** - a literal string
 3.  **templateUrl** - refers to a separate template file
