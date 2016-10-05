@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="directivesModule">
+
+<head>
+    <meta charset="utf-8">
+    <title>Shared vs Isolate Scope</title>
+</head>
+
+<body ng-controller="CustomersController">
+    
+    <h3>Schared Scope Directive</h3>
+    <shared-scope></shared-scope>
+    
+    <h3>Isolate Scope Directive</h3>
+    <isolate-scope></isolate-scope>
+    
+    <h3>Isolate Scope with String Directive</h3>
+    <isolate-scope-with-string name="{{customer.name}}"></isolate-scope-with-string>
+    
+    
+    <script src="../scripts/angular.js"></script>
+    <script src="../scripts/directivesController.js"></script>
+    <script src="sharedScopeDirective.js"></script>
+    <script src="isolateScopeDirective.js"></script>
+    <script src="isolateScopeWithStringDirective.js"></script>
+</body>
+
+</html>

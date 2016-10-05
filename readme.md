@@ -149,3 +149,82 @@ angular.module('moduleName')
         };
     });
 ```
+
+### Shared and Isolate Scope
+
+(Refer to Module 2)
+
+We're probably going to chose isolate scope with custom directives.
+
+**Shared Scope** is built into AngularJS.  Parent Scope on top of Nested Child Scope.  Children inherit down from parent controllers.  You _can_ do this in Angular directives, but it makes custom directives less reusable because we shouldn't be counting on some property trickling down from a parent scope.  You don't know if you'll have access to that same required property in any other apps.
+
+Shared scope might look like this:
+
+```javascript
+    var app = angular.module('myModule', []);
+
+    app.controller('Controller', ['$scope', function ($scope) {
+        $scope.customer = {
+            name: 'David',
+            street: '1234 Anywhere St.'
+        };
+    }]);
+    
+    app.directive('sharedScope', function () {
+        return {
+            template: 'Name: {{customer.name}} Street: {{customer.street}}'
+        };
+    });
+```
+
+**Isolate Scope**  Also called local scope.  It's isolated from its parent and does not automatically inherit everything from a parent's scope.  But the parent _can_ pass specific things: events, function, properties.  
+
+To **isolate scope** you add a `scope` property in the DDO like this:
+
+```javascript
+    angular.module('myModule')
+        .directive('isolateScope', function () {
+            return {
+                scope: {},    // isolate scope
+                template: 'Name: {{customer.name}} Street: {{customer.street}}'
+            };
+        });
+```
+
+Adding `scope: {}` blocks the automatic inheritance of the customer property from the parent scope.
+
+So how do we get data from the parent to the child, and from the child to the parent?  There are three ways to "punch a hole" through the wall isolating the parent and child scopes:
+
+1.  **`@` Local Scope Property** - creates a one-way binding letting us pass a string value to the directive.  Means "hey, you can pass me a string value".  Code looks like this:
+
+    Javascript:
+    ```javascript
+    // In a controller
+    $scope.first = 'Dave';
+    
+    // in a directive    
+    scope: {
+        name: '@'
+    }
+
+    ```
+    
+    HTML:
+    ```
+    <my-directive name={{first}}"></my-directive>
+    ```
+    
+    So, the value of `$scope.first` is passed into the directive, via an attribute on the directive element in the HTML.
+    
+
+2.  `=` Local Scope Property
+
+3.  `&` Local Scope Property
+
+### Documentation
+
+When writing a directive, we need to document what properties the directive expects to receive via attributes and data binding expressions.  For example, in the below HTML our directive expects to receive a `name` property from the DOM:
+
+```
+<isolate-scope-with-string name="{{customer.name}}"></isolate-scope-with-string>
+```
