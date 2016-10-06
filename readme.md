@@ -217,7 +217,32 @@ So how do we get data from the parent to the child, and from the child to the pa
     So, the value of `$scope.first` is passed into the directive, via an attribute on the directive element in the HTML.
     
 
-2.  `=` Local Scope Property
+2.  **`=` Local Scope Property** - Creates a 2-way binding.  So if a value is passed through and the directive changes it, it's changed in the parent scope as well.
+
+    Both strings **and objects** are 2-way bound with the `=`.
+    
+    Note that when passing a whole object, you don't use {{ squigley brackets }} in the DOM element attribute.  You just put the $scope property in quotes.
+    
+    Code looks like this:
+
+    Javascript:
+    ```javascript
+    // In a controller - parent scope
+    $scope.person = {
+        name: 'Dave'
+    };
+    
+    // in a directive - child scope
+    scope: {
+        customer: '='
+    }
+
+    ```
+    
+    HTML (note: no {{ squigley brackets }}:
+    ```
+    <my-directive customer="person"></my-directive>
+    ```
 
 3.  `&` Local Scope Property
 
