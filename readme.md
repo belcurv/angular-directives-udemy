@@ -150,9 +150,7 @@ angular.module('moduleName')
     });
 ```
 
-### Shared and Isolate Scope
-
-(Refer to Module 2)
+### MODULE 2 - Shared and Isolate Scope
 
 We're probably going to chose isolate scope with custom directives.
 
@@ -233,10 +231,12 @@ So how do we get data from the parent to the child, and from the child to the pa
     };
     
     // in a directive - child scope
-    scope: {
-        customer: '='
+    return {
+        scope: {
+            customer: '='  // two-way binding
+        },
+        template: '...'
     }
-
     ```
     
     HTML (note: no {{ squigley brackets }}:
@@ -244,9 +244,136 @@ So how do we get data from the parent to the child, and from the child to the pa
     <my-directive customer="person"></my-directive>
     ```
 
-3.  `&` Local Scope Property
+3.  **`&` Local Scope Property** - Allows us to pass a function (or expression) from parent scope to isolate scope.  It allows a directive with isolate scope to invoke an external function. This is useful if you want to notify the outside world "across the wall" that something changed. You might have a direcive that gets data and updates it via two-way binding `'='` but you might want to know when the user is officially done - by clicking a save button or something.
 
-### Documentation
+    From a code standpoint...
+
+    Javascript:
+    ```javascript
+    // in a controller:
+    $scope.click = function () {
+        //do stuff
+    };
+    
+    // in the directive:
+    return {
+        scope: {
+            action: '&'  // 'action' is an alias to the function
+        },
+        template: '...'
+    };
+    ```
+    
+    HTML:
+    
+    ```
+    <my-directive action="click()"></my-directive>
+    ```
+    
+    Note that `action` refers to the directive's isolate scope property 'action', which takes the `click()` parent $scope function.  We pass the $scope method `click()` to the directive via the HTML directive's `action` attribute.
+    
+
+### MODULE 3 - The `link()` Function
+
+This module is all about DOM manipulation.  We'll integrate several other Angular pieces in directives.
+
+Outline:
+
+1.  The `link()` function. How it works.
+
+2.  Build a `TableHelper` Directive.  Like a data grid - takes tabular data, writes it out.  Instead of having to manually do ng-repeat, we'll build a reusable directive that makes it easy to take any type of data and map it out to a table.
+
+3.  Tweak our `TableHelper` Directive.  Integrate `ngModel` using require\include.
+
+4.  Use `$parse` (a service) and `$eval` (a `$scope` function that calls `$parse`).  We might have an object that's passed into a directive as a string, and it needs to be converted into something else.  With `$parse` and `$eval` we can convert string values into objects and other types of things.
+
+5.  Build a Google Maps directive using html5 geolocation
+
+6.  Using `$compile` and `$interpolate` - `$compile` is actually used behind the scenes; normally you don't need it because of the `link()` function. But when you need to get more involved, you can use `$compile`.
+
+7.  Wrap up: Is `link()` Always Appropriate?
+
+#### The `link()` Function
+
+Various properties can be defined on a DDO:
+
+```javascript
+angular.module('moduleName')
+
+    .directive('myDirective', function () {
+        return {
+            restrict: 'EA',
+            scope: {},
+            template: '<div>{{ myVal }}</div>',
+            controller: controller,
+            link: function (scope, element, attrs) {} // you are here!
+        };
+    });
+```
+
+We're going to focus on the `link()` function, which is focused on DOM manipulation.
+
+_Aside: how author likes to structure his directives_:
+
+```javascript
+    (function () {
+        var linkDemo = function () {
+            return {
+
+
+
+                link: function (scope, element, attrs) { }
+
+
+            };
+        };
+
+        angular.module('moduleName')
+            .directive('linkDemo', linkDemo);
+
+    }());
+```
+_He does this for controllers, services, factories, etc. It focuses more on  functionality and less on Angular._  
+
+The `link()` function connects the directive template to the scope.  Or, links the data to the view.  Directives are sort of like a small scale view-controller thing.
+
+**Link Function Parameters**
+
+You always get the same three parameters:
+
+1.  **scope** - either the shared scope or the isolate scope, depending on how you set up the DDO
+2.  **element** - represents either the element that your directive is applied to, if it's an attribute, or it's going to be the directive tag itself.
+3.  **attrs** - all the different attributes on the directive's tag.
+
+**DOM Manipulation with jqLite**
+
+You can write vanilla JS inside link functions, but Angular includes **jqLite**, a tiny, API-compatible subset of jQuery designed for DOM manipulation.  The middle-man between the DOM and your directive.  The benefit of using jqLite is that it's cross-browser compatible by design.
+
+For more info, see the official docs:
+
+https://docs.angularjs.org/api/ng/function/angular.element
+
+Key jqLite Functions:
+
+1.  `angular.element()` - selects the element we want to work with. Akin to jQuery's `$("_element_")`
+2.  `addClass()` - adds a CSS class selector.
+3.  `css()` - adds CSS inline.
+4.  `attr()` - used to get attributes and manipulate them.
+5.  `on()` / `off()` - for different types of events.
+6.  `find()` - finds tags _only_.  In jQuery you can find by class or ID.  In jqLite, you can only find by tag name.
+7.  `append()` / `remove()` - for adding and removing child nodes.
+8.  `html()` / `text()` - for updating the inner html or inner text of an element.
+9. `ready()` - function to be notified when the DOM is officially loaded.
+
+**Building The TableHelper Directive**
+
+Refer to: `tableHelper.js`.
+
+To begin with, 
+
+### GENERAL NOTES
+
+**Documentation**
 
 When writing a directive, we need to document what properties the directive expects to receive via attributes and data binding expressions.  For example, in the below HTML our directive expects to receive a `name` property from the DOM:
 
