@@ -42,10 +42,12 @@
         ];
         
         $scope.addCustomer = function (name) {
-            console.log(name);
             counter += 1;
+            var newName = (name) ? name : 'New Customer' + counter;
+            console.log(newName);
             $scope.customers.push({
-                name: (name) ? name : 'New Customer' + counter,
+                // name: (name) ? name : 'New Customer' + counter,
+                name: newName,
                 street: counter + ' Cedar Point St.',
                 age: counter
             });

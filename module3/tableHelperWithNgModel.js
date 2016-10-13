@@ -25,14 +25,15 @@
                 // will be NaN initially.
                 // FOUR ways to watch for changes to ngModel:
                 
-//                attrs.$observe('ngModel', function (value) {
-//                    // value represents what I want to watch in ngModel
-//                    scope.$watch(value, function(newValue) {
-//                        render();
-//                    });
-//                });
+                attrs.$observe('ngModel', function (value) {
+                    // value represents what I want to watch in ngModel
+                    scope.$watch(value, function(newValue) {
+                        datasource = ngModel.$modelValue;
+                        render();
+                    });
+                });
                 
-                scope.$watch(attrs.ngModel, render);
+//                scope.$watch(attrs.ngModel, render);
                 
 //                scope.$watch(function() {
 //                    // what do we specifically want to watch for?
@@ -40,6 +41,7 @@
 //                    // we just want to get to the raw data - the $modelValue
 //                    return ngModel.$modelValue;
 //                }, function(newValue) {
+//                    datasource = ngModel.$modelValue;
 //                    render();
 //                });
 
@@ -54,7 +56,6 @@
                 
                 function render() {
                     if (ngModel && ngModel.$modelValue.length) {
-                        datasource = ngModel.$modelValue;
                         table += tableStart;
                         table += renderHeader();
                         table += renderRows() + tableEnd;
