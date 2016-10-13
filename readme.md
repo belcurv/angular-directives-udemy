@@ -369,7 +369,16 @@ Key jqLite Functions:
 
 Refer to: `tableHelper.js`.
 
-To begin with, 
+There may be times when you want to use other built-in Angular directives, or your own custom directives.  We do this using a `require` property in our DDO.  Refer to: `tableHelperWithNgModel.js`.  Note that in the `scope` property, we've removed the reference to 'datasource'.  Instead we're going to use the `ng-model` attribute/directive on our custom directive, like so:
+
+```
+<table-helper-woth-ng-model
+    ng-model="customers"
+    columnmap="[{name: 'Name'}, {street: 'Street'}, {age: 'Age'}, {url: 'URL', hidden: true}]">
+</table-helper-woth-ng-model>
+```
+
+`ng-model` is doind the same thing as our prior datasource alias was doing.  But any Angular dev who sees ng-model will know precicely what it's doing there.
 
 ### GENERAL NOTES
 

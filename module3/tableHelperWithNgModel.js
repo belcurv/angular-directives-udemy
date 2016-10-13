@@ -7,7 +7,8 @@
         // we'll use jqLite to plug into this div
         var template = '<div class="tableHelper"></div>',
             
-            link = function (scope, element, attrs) {
+            //ngModel object will be passed in due to require: 'ngModel' in DDO below
+            link = function (scope, element, attrs, ngModel) {
                 
                 // init required variables
                 var headerCols = [],  // array of column names
@@ -15,21 +16,45 @@
                     tableEnd   = '</table>',
                     table      = '',  // will be updated with values
                     visibleProps = [],  //
+                    datasource,
                     sortCol    = null,
                     sortDir    = 1;
                 
-                // need to know if datasource property changes,
-                // if it does, need to update the table.
-                // we use $watchCollection on 'datasource'
-                // and call our render function if it changes.
-                scope.$watchCollection('datasource', render);
+                
+                // Watch for ngModel to change. Required since the $modelValue
+                // will be NaN initially.
+                // FOUR ways to watch for changes to ngModel:
+                
+//                attrs.$observe('ngModel', function (value) {
+//                    // value represents what I want to watch in ngModel
+//                    scope.$watch(value, function(newValue) {
+//                        render();
+//                    });
+//                });
+                
+                scope.$watch(attrs.ngModel, render);
+                
+//                scope.$watch(function() {
+//                    // what do we specifically want to watch for?
+//                    // ngModel has $modelValue and $viewValue.
+//                    // we just want to get to the raw data - the $modelValue
+//                    return ngModel.$modelValue;
+//                }, function(newValue) {
+//                    render();
+//                });
+
+//                Author's Favorite:
+//                ngModel.$render = function () {
+//                    render();
+//                };
+
                 
                 // immediately call
                 wireEvents();
                 
                 function render() {
-                    // if datasource exists with some length, build table
-                    if (scope.datasource && scope.datasource.length) {
+                    if (ngModel && ngModel.$modelValue.length) {
+                        datasource = ngModel.$modelValue;
                         table += tableStart;
                         table += renderHeader();
                         table += renderRows() + tableEnd;
@@ -40,8 +65,11 @@
                 function wireEvents() {
                     element.on('click', function (event) {
                         // if any TH was clicked, grab the name of the column
-                        if (event.srcElement.nodeName === 'TH') {
-                            var val = event.srcElement.innerHTML;
+                        // NOTE: using '.target' instead of '.srcElement'
+                        // FF doesn't understand '.srcElement'
+                        // Chrome and FF both understand '.target'
+                        if (event.target.nodeName === 'TH') {
+                            var val = event.target.innerHTML;
                             var col = (scope.columnmap) ? getRawColumnName(val) : val;
                             if (col) {
                                 sort(col);
@@ -57,7 +85,7 @@
                         sortDir = sortDir * -1;
                     }
                     sortCol = col;
-                    scope.datasource.sort(function (a, b) {
+                    datasource.sort(function (a, b) {
                         if (a[col] > b[col]) {
                             return 1 * sortDir;
                         }
@@ -74,7 +102,7 @@
                 // and generates table column headers 
                 function renderHeader() {
                     var tr = '<tr>';
-                    for (var prop in scope.datasource[0]) {
+                    for (var prop in datasource[0]) {
                         var val = getColumnName(prop);
                         if (val) {
                             // Track visible properties to make it fast to check them later
@@ -83,6 +111,7 @@
                         }
                     }
                     tr += '</tr>';
+                    tr = '<thead>' + tr + '</thead>';
                     return tr;
                 }
                 
@@ -92,9 +121,9 @@
                 // allowing only visible properties.
                 function renderRows() {
                     var rows = '';
-                    for (var i = 0, len = scope.datasource.length; i < len; i++) {
+                    for (var i = 0, len = datasource.length; i < len; i++) {
                         rows += '<tr>';
-                        var row = scope.datasource[i];
+                        var row = datasource[i];
                         for (var prop in row) {
                             if (visibleProps.indexOf(prop) > -1) {
                                 rows += '<td>' + row[prop] + '</td>';
@@ -108,7 +137,7 @@
                 
                 //
                 function renderTable() {
-                    table += '<br /><div class="rowCount">' + scope.datasource.length + ' rows</div>';
+                    table += '<br /><div class="rowCount">' + datasource.length + ' rows</div>';
                     element.html(table);
                     table = '';
                 }
@@ -128,7 +157,7 @@
                 }
                 
                 function filterColumnMap(prop) {
-                    var val = scope.columnmap.filter(function(map) {
+                    var val = scope.columnmap.filter(function (map) {
                         if (map[prop]) {
                             return true;
                         }
@@ -154,9 +183,9 @@
         // return the DDO object literal
         return {
             restrict: 'E',
+            require: 'ngModel',
             scope: {
-                columnmap: '=',  // were passing an object, so we need the '='
-                datasource: '='  // do want bi-directional binding
+                columnmap: '='
             },
             link: link,
             template: template
@@ -166,6 +195,6 @@
     
     angular.module('directivesModule')
     
-        .directive('tableHelper', tableHelper);
+        .directive('tableHelperWithNgModel', tableHelper);
     
 }());

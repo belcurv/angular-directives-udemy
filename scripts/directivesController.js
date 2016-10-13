@@ -19,25 +19,25 @@
                 name: 'David',
                 street: '1234 Anywhere St.',
                 age: 25,
-                url: 'index.html'
+                url: 'www.david.html'
             },
             {
                 name: 'Tina',
                 street: '1800 Crest St.',
                 age: 35,
-                url: 'index.html'
+                url: 'www.tina.html'
             },
             {
                 name: 'Michelle',
                 street: '890 Main St.',
                 age: 29,
-                url: 'index.html'
+                url: 'www.michelle.html'
             },
             {
                 name: 'John',
                 street: '444 Cedar St.',
                 age: 18,
-                url: 'index.html'
+                url: 'www.john.html'
             }
         ];
         
