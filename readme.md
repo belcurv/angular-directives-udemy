@@ -193,7 +193,7 @@ Adding `scope: {}` blocks the automatic inheritance of the customer property fro
 
 So how do we get data from the parent to the child, and from the child to the parent?  There are three ways to "punch a hole" through the wall isolating the parent and child scopes:
 
-1.  **`@` Local Scope Property** - creates a one-way binding letting us pass a string value to the directive.  Means "hey, you can pass me a string value".  Code looks like this:
+1.  **`@` Local Scope Property** - creates a one-way binding letting us pass a string value to the directive.  If the directive changes the value, nothing happens to it back in the outer scope that passed it in.  Means "hey, you can pass me a string value".  Code looks like this:
 
     Javascript:
     ```javascript
@@ -217,7 +217,7 @@ So how do we get data from the parent to the child, and from the child to the pa
 
 2.  **`=` Local Scope Property** - Creates a 2-way binding.  So if a value is passed through and the directive changes it, it's changed in the parent scope as well.
 
-    Both strings **and objects** are 2-way bound with the `=`.
+    Both strings **and objects** can be passed are 2-way bound with the `=`.
     
     Note that when passing a whole object, you don't use {{ squigley brackets }} in the DOM element attribute.  You just put the $scope property in quotes.
     
@@ -369,16 +369,119 @@ Key jqLite Functions:
 
 Refer to: `tableHelper.js`.
 
-There may be times when you want to use other built-in Angular directives, or your own custom directives.  We do this using a `require` property in our DDO.  Refer to: `tableHelperWithNgModel.js`.  Note that in the `scope` property, we've removed the reference to 'datasource'.  Instead we're going to use the `ng-model` attribute/directive on our custom directive, like so:
+There may be times when you want to use other built-in Angular directives, or your own custom directives.  We do this using a `require` property in our DDO.  Refer to: `tableHelperWithNgModel.js`.  The DDO would look something like this:
 
+```javascript
+    return {
+        restrict: 'E',
+        require: 'ngModel',  // include other directive
+        scope: {
+            columnmap: '=',  // remove 'datasource' from scope
+        },
+        link: link,
+        template: template
+    };
 ```
-<table-helper-woth-ng-model
-    ng-model="customers"
-    columnmap="[{name: 'Name'}, {street: 'Street'}, {age: 'Age'}, {url: 'URL', hidden: true}]">
-</table-helper-woth-ng-model>
+
+Note that in the `scope` property, we've removed the reference to 'datasource'. We no longer need it because ngModel connects directly to the parent $scope.
+
+The `require` property is going to look for a 'ngModel' attribute on the DOM directive tag itself (see helow HTML). If the ngModel attribute was missing, Angular would throw an error.  So, Angular lets us define required directives as:
+1.  optional, using a question mark: `require: ?ngModel`
+2.  existing on the element _or_ on the parent element using a carat: `require: ^ngModel`
+3.  existing _only_ on the parent element using two carats: `require: ^^ngModel`
+4.  optional on the directive itself or the parent element: `require: ?^ngModel`
+
+HTML:
+```
+    <table-helper-woth-ng-model
+        ng-model="customers"
+        columnmap="[{name: 'Name'}, {street: 'Street'}, {age: 'Age'}, {url: 'URL', hidden: true}]">
+    </table-helper-woth-ng-model>
 ```
 
 `ng-model` is doind the same thing as our prior datasource alias was doing.  But any Angular dev who sees ng-model will know precicely what it's doing there.
+
+Now that we've required ngModel, we add it as an attribute to our link function:
+
+```javascript
+var link = function (scope, element, attrs, ngModel) {
+    // do stuff
+};
+```
+
+This ngModel is actually passing `ngModelController` which does a bit more than just databinding.  We use 'ngModel' as shorthand for it.  
+
+ngModel is quite powerful. You can do data validation with it, for example. For everything it does, see:
+
+https://docs.angularjs.org/api/ng/type/ngModel.NgModelController
+
+Ok, so we have required ngModel and gained access to it via the link function.  Now we need to know when the model (ngModel) actually changes (when our $scope data changes).  Our customer render() function needs to know when the model data changes so it can re-render the table.  It needs to know this first when the page initially loads and then when any future changes are made to the table.
+
+Dan describes four ways to monitor ngModel for changes.
+
+1.  Using `$observe` to watch changes on the directive's attributes:
+    ```javascript
+    attrs.$observer('ngModel', function(value) {
+        // value = whatever I want to watch in ngModel
+        scope.$watch(value, function(newValue) {
+            render();
+        });
+    });
+    ```
+
+2.  Using `scope.$watch` to monitor `attrs.ngModel` for changes:
+    ```javascript
+    scope.$watch(attrs.ngModel, render);
+    ```
+    
+3.  Using `scope.$watch` again but giving it a function. Inside the function we set whatever it is we specifically want to watch for. ngModel gives us two things to watch: `$modelValue` and `$viewValue`. We are more interested in `$modelView` since nothing has been attached to a view at this point.  The below allows us to specifically watch `$modelValue` for changes, and when it does we pass newValue to the chained function:
+    ```javascript
+    scope.$watch(attrs.ngModel, function() {
+        return ngModel.$modelValue;
+    }, function(newValue) {
+        render();
+    });
+    ```
+    
+4.  Using the `$render()` function built into NGModelController.  `$render()` is invoked when `$modelValue` and `$viewValue` are different from their previous values. We don't have to do a $watch on anything. We just let ngModel 'notify' us when it thinks the internals (`$modelValue`, `$viewValue`) have change. When it thinks the internals have changed, it fires a `$render()` and we give that a function:
+    ```javascript
+    ngModel.$render = function() {
+        render();
+    };
+    ```
+    
+**Using $parse And $eval**
+
+(refer to `tableHelperWithParse.js`)
+
+When you need to convert something that a user supplies via an attribute into an object, but you don't want to use an isolate scope property, you can use Angular's $parse service and $eval function.
+
+In the code, we revert back to using `datasource` in our DDO's isolate scope property, but we've removed `columnmap`.  We're now passing `columnmap` as an attribute, and we want to use it in our directive.  But passing it as-is means it will be received as a string.  When we were using the isolate scope '=' property, Angular automatically converted the passed string to an object for us. Now that we're _not_ using the '=' isolate scope property, what can we do?
+
+1.  use the `$eval` function.  Angular gives us `$eval` via the 'scope' property we already have in our directive's link function.  `$eval` takes the attributes we want to get to, and automatically converts strings to objects.  Under the covers, `$eval` calls the `$parse` service.
+    ```javascript
+        columnmap = scope.$eval(attrs.columnmap);
+    ```
+2.  use the `$parse` service, passing the attributes.  First we need to inject the $parse service before we can use it. We do that with some Angular injection syntax:
+    ```javascript
+    var tableHelperWithParse = function () { ... };
+    ```
+    ... becomes ...
+    ```javascript
+    var tableHelperWithParse = ['$parse', function ($parse) { ... }];
+    ```
+    Then we can use $parse:
+    ```javascript
+    columnmap = $parse(attrs.columnmap)();
+    ```
+    Note: **easy to forget** - we have to immediately invoke `$parse` with the trailing `()`. This is because `$parse` really returns a function.  When we use it, we don't want the function, we want the output of the function.  So we have to invoke it right away.
+
+Both of the above work the same.  scope.$eval saves a little bit of typing since you don't have to inject $parse.
+
+**Note:** since we are no longer binding `columnmap` through isolate scope, we need to change all references of `scope.columnmap` to just our new `columnmap` variable.
+
+**Building a Google Maps Directive**
+
 
 ### GENERAL NOTES
 
