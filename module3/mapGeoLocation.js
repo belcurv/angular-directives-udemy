@@ -10,21 +10,14 @@
         
         function link(scope, elem, attrs) {
             
-            // use jqLite functionality to find 
-            // 1. status elem and assign it to status variable
-            // 2. map elem and assign it to mapContainer variable            
             status = angular.element(document.getElementById('status'));
             mapContainer = angular.element(document.getElementById('map'));
             
-            // style mapContainer using attr & jqLite
+            // style mapContainer
             mapContainer.attr('style', 'height:' + scope.height + 'px;' +
-                                        'width:' + scope.width  + 'px');
+                                       'width: ' + scope.width  + 'px;');
             
-            // use $window object to get to navigator object, which gives
-            // us access to geolocation API.  It has an API function called
-            // 'getCurrentLocation' which has a success callback and a failure.
-            // We name success 'mapLocation' and failure 'geoError' and define them
-            // below.
+            // do the thing!
             $window.navigator.geolocation.getCurrentPosition(mapLocation, geoError);
         }
         

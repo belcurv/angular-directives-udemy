@@ -386,6 +386,7 @@ There may be times when you want to use other built-in Angular directives, or yo
 Note that in the `scope` property, we've removed the reference to 'datasource'. We no longer need it because ngModel connects directly to the parent $scope.
 
 The `require` property is going to look for a 'ngModel' attribute on the DOM directive tag itself (see helow HTML). If the ngModel attribute was missing, Angular would throw an error.  So, Angular lets us define required directives as:
+
 1.  optional, using a question mark: `require: ?ngModel`
 2.  existing on the element _or_ on the parent element using a carat: `require: ^ngModel`
 3.  existing _only_ on the parent element using two carats: `require: ^^ngModel`
@@ -393,13 +394,13 @@ The `require` property is going to look for a 'ngModel' attribute on the DOM dir
 
 HTML:
 ```
-    <table-helper-woth-ng-model
+    <table-helper-with-ng-model
         ng-model="customers"
         columnmap="[{name: 'Name'}, {street: 'Street'}, {age: 'Age'}, {url: 'URL', hidden: true}]">
-    </table-helper-woth-ng-model>
+    </table-helper-with-ng-model>
 ```
 
-`ng-model` is doind the same thing as our prior datasource alias was doing.  But any Angular dev who sees ng-model will know precicely what it's doing there.
+`ng-model` is doing the same thing that our prior datasource alias was doing.  But any Angular dev who sees ng-model will know precicely what it's doing there.
 
 Now that we've required ngModel, we add it as an attribute to our link function:
 
@@ -415,13 +416,13 @@ ngModel is quite powerful. You can do data validation with it, for example. For 
 
 https://docs.angularjs.org/api/ng/type/ngModel.NgModelController
 
-Ok, so we have required ngModel and gained access to it via the link function.  Now we need to know when the model (ngModel) actually changes (when our $scope data changes).  Our customer render() function needs to know when the model data changes so it can re-render the table.  It needs to know this first when the page initially loads and then when any future changes are made to the table.
+Ok, so we have required ngModel and gained access to it via the link function.  Now we need to know when the model (ngModel) actually changes (when our $scope data changes).  Our custome render() function needs to know when the model data changes so it can re-render the table.  It needs to know this first when the page initially loads and then when any future changes are made to the table.
 
 Dan describes four ways to monitor ngModel for changes.
 
 1.  Using `$observe` to watch changes on the directive's attributes:
     ```javascript
-    attrs.$observer('ngModel', function(value) {
+    attrs.$observe('ngModel', function(value) {
         // value = whatever I want to watch in ngModel
         scope.$watch(value, function(newValue) {
             render();
@@ -449,7 +450,7 @@ Dan describes four ways to monitor ngModel for changes.
         render();
     };
     ```
-    
+
 **Using $parse And $eval**
 
 (refer to `tableHelperWithParse.js`)
@@ -476,11 +477,140 @@ In the code, we revert back to using `datasource` in our DDO's isolate scope pro
     ```
     Note: **easy to forget** - we have to immediately invoke `$parse` with the trailing `()`. This is because `$parse` really returns a function.  When we use it, we don't want the function, we want the output of the function.  So we have to invoke it right away.
 
-Both of the above work the same.  scope.$eval saves a little bit of typing since you don't have to inject $parse.
+Both of the above work the same.  `scope.$eval` saves some typing since you don't have to inject $parse.
 
 **Note:** since we are no longer binding `columnmap` through isolate scope, we need to change all references of `scope.columnmap` to just our new `columnmap` variable.
 
 **Building a Google Maps Directive**
+
+Dan uses the link() function to build a Google maps directive that ties into the html5 geo-location API.  We want using the directive to look like this:
+
+```
+    <map-geo-location height="400" width="600"></map-geo-location>
+```
+
+We have to include Angular's $window service:
+
+```javascript
+    (function () {
+    
+        // directive shell
+        var mapGeoLocation = ['$window', function ($window) {
+        
+        
+            var template = '<p><span id="status">Looking up geolocation...</span></p> +
+                           '<br /><div id="map"></div>',
+                mapContainer = null,   // will target the above <div id="map">
+                status = null;         // will target the above <span id="status>
+
+
+            function link(scope, elem, attrs) {
+                
+                /* Notes on use of angular.element() below:
+                   Wrapping 'document.getElementById()' in angular.element()
+                   gives all the jqLite functionality to 'status' &
+                   'mapContainer' variables.  Then they can call any of the
+                   jqLite methods.
+                /*
+
+                // find status element and assign it to 'status' var
+                status = angular.element(document.getElementById('status'));
+                
+                // find map element and assign it to 'mapContainer' var
+                mapContainer = angular.element(document.getElementById('map'));
+                
+                // style mapContainer using jqLite's 'attr' method, and the
+                // 'height' property from our DDO's scope
+                mapContainer.attr('style', 'height:' + scope.height + 'px;' +
+                                            'width:' + scope.width + 'px;');
+                                            
+                /* use $window object to get to navigator object, which gives
+                   us access to geolocation API.  It has an API function called
+                   'getCurrentLocation' which takes success and failure
+                   callbacks. We name success 'mapLocation', the failure
+                   'geoError' and define them below.
+                */
+                $window.navigator.geolocation.getCurrentPosition(mapLocation, geoError);
+            }
+            
+            
+            // mapLocation() getCurrentPosition() success callback function.
+            /* The getCurrentPosition function returns a position object and
+               gives it to the success callback (the 'pos' param). 'pos' gives us
+               the 'coords' property, which has all the GPS features you might want.
+            */
+            function mapLocation(pos) {
+                // Use jqLite to add html to our status variable from above
+                status.html('Found your location! Longitude: ' + pos.coords.longitude +
+                            ' Latitude: ' + pos.coords.latitude);
+
+                // create a google maps 'latlng' object from the coords
+                // we received via 'pos' parameter
+                var latlng = new google.maps.LatLng(pos.coords.latitude,
+                                                    pos.coords.longitude),
+
+                // create map options object
+                options = {
+                    zoom: 15,
+                    center: latlng,
+                    mapTypeControl: true,
+                    mapTypeId: google.maps.MapTypeId.ROADMAP
+                },
+
+                /* grab the raw map DOM element from our jqLite-wrapped
+                   'mapContainer' by referencing mapContainer[0]. Feed that
+                   our options.
+                */
+                map = new google.maps.Map(mapContainer[0], options),
+
+                // create map marker for where we are
+                marker = new google.maps.Marker({
+                    position: latlng,
+                    map: map,
+                    title: "Your location"
+                });
+            }
+
+            
+            // mapLocation() getCurrentPosition() failure callback function.
+            /* Takes the error info that html5 geolocation API passes.
+               We use jqLite's .html() method to output a message.
+            */
+            function geoError(error) {
+                status.html('Failed lookup ' + error.message);
+            }
+            
+            
+            // Return the DDO object literal
+            return {
+                restrict: 'E',
+                scope: {
+                    height: '@',    // attributes to be passed in via
+                    width: '@'      // the directive element in the view
+                },
+                link: link,         // refers to our link function above
+                template: template  // refers to our template above
+            }
+                           
+            
+        }];
+    
+        angular.module('directivesModule', [])
+        
+            .directive('mapGeoLocation', mapGeoLocation);
+    
+    }());
+```
+
+**Using $parse And $eval**
+
+We earlier talked about the $compile service and how it's used behind the scenes.  There's more to that story.
+
+**The compile() function**
+
+
+
+$interpolate service
 
 
 ### GENERAL NOTES
