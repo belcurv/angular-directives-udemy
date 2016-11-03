@@ -514,7 +514,7 @@ We have to include Angular's $window service:
                    gives all the jqLite functionality to 'status' &
                    'mapContainer' variables.  Then they can call any of the
                    jqLite methods.
-                /*
+                */
 
                 // find status element and assign it to 'status' var
                 status = angular.element(document.getElementById('status'));
