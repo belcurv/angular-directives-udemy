@@ -11,6 +11,7 @@
 There are 4 ways to attach directives to DOM elements.  For example, as an attribute: `<div my-directive></div>`.
 
 What can directives do?
+
 1.  Manipulate the DOM
 2.  Iterate through Data
 3.  Handle Events
@@ -19,6 +20,7 @@ What can directives do?
 6.  Data Binding
 
 Angular comes with a lot of built-in directives:
+
 *   FORMS
     *  mg-maxlength
     *  ng-minlength
@@ -53,6 +55,7 @@ Angular comes with a lot of built-in directives:
     *  ng-view
     
 And there are lots of 3rd Party Directives:
+
 1.  UI Bootstrap
 2.  AngularStrap
 3.  Angular UI Gruid
@@ -498,10 +501,10 @@ We have to include Angular's $window service:
         var mapGeoLocation = ['$window', function ($window) {
         
         
-            var template = '<p><span id="status">Looking up geolocation...</span></p> +
+            var template = '<p><span id="status">Looking up geolocation...</span></p>' +
                            '<br /><div id="map"></div>',
                 mapContainer = null,   // will target the above <div id="map">
-                status = null;         // will target the above <span id="status>
+                status = null;         // will target the above <span id="status">
 
 
             function link(scope, elem, attrs) {
