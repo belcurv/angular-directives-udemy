@@ -611,9 +611,26 @@ We earlier talked about the $compile service and how it's used behind the scenes
 
 **The compile() function**
 
+Directives can have a `compile` property defined in the DDO; it's normally linked with a `compile` function defined elsewhere. The `compile` function returns an object literal. Directives usually take care of this for us behind the scenese.  The link function is actually related to the `compile` function, and most of the complexity is hidden from us. But we can also break `compile` out and work with it directly.
 
+Why didn't we have to use `compile` before?  When you just use the link function, Angular just treats the link function as post-link automatically.  We use compile if/when we want to mess with the template before pre or post link.
 
-$interpolate service
+Basic flow:
+
+1.  **compile** - The `compile` function loads up the directive template once, and sort of caches it so it can "stamp out" as many instances of the template as we need.
+2.  **pre-link** - Then `pre-link` is called. The `pre-link` function is very rarely used.  It gives you an opportunity to do something before the `link` function is called.  Maybe a directive has nested directives (children) - this is where you would link them in.
+3.  **post-link** - `post-link` is actually the same `link` function we've already been using. `link` is just shorthand for `post-link`.
+
+Example: for added efficiency, we may want to display DOM stuff only when a user interacts with some specific elements.  Like, we may have a ng-repeat that creates a list of 500+ elements.  That's a lot of extra memory and processing use, when there's no need to display some of the data until a user interacts with it.  So we can use a delay binding.
+
+See: delayBindWithCompile.html and delayBindWithCompile.js
+
+**$interpolate service**
+Every time we do a data binding or expression, the stuff in between our squiggly brackets has to be converted into something that Angular can use - it has to be _interpolated_.
+
+#### Is link() Always Appropriate?
+
+Tradeoff: maintenance vs performance.  If you're doing a lot of DOM manipulation in a link() function, it may perform better than, say, an ng-repeat.  But the maintainability is pretty bad.  With gigantic lists, you may want to take over rendering youself in a link() function.  Just for the added performance.
 
 
 ### GENERAL NOTES
